@@ -119,6 +119,7 @@ df |>
   facet_wrap(~District, scales = 'free') + 
   theme_bw()
 
+#<------------------ Boxplots -------------------------->
 
 medVals <- df |> 
   pivot_longer(
@@ -154,6 +155,24 @@ df |>
   )
 
 
+#<--------------Boxplots without midline --------------------->
+
+df |> 
+  pivot_longer(
+    cols = !c(District, Blocks),
+    names_to = c("Type", "Year"),
+    names_sep = "_",
+    values_to = "Acreage"
+  ) |> 
+  ggplot() + 
+  geom_boxplot(aes(x = Blocks,
+                   y = Acreage,
+                   colour = Type)) + 
+  facet_wrap(~District, scales = 'free', ncol = 4) + 
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(size = 7, angle = 0)
+  )
 
 #
 ##
