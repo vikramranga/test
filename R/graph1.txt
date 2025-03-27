@@ -1,0 +1,172 @@
+
+library(pacman)
+p_load(tidyverse)
+
+
+acrRain <- readxl::read_xlsx('D:/Amnex/Kharif/IMD_data/New folder/RF25_2018_23_1Julyto15Sept.xlsx')
+acrRain <- acrRain[complete.cases(acrRain), ]
+
+
+a <- acrRain |> 
+  select(!"Crop.Name") |> 
+  pivot_longer(
+    cols = !c(District, Block, Ago_zone),
+    names_to = c("Type", "Year"),
+    names_sep = "_",
+    values_to = "Values"
+  ) |> 
+  pivot_wider(
+    names_from = "Type",
+    values_from = "Values") 
+
+p <- a |> 
+  filter(District == "PURBA BARDHAMAN") |> 
+  filter(Year == 2018) |>
+  mutate(rain = rain * 10) |> 
+  ggplot(aes(x = Block))+
+  geom_line(aes(y = Acr,
+                color = Year,
+                group = Year))+
+  geom_line(aes(y = rain,
+                color = Year,
+                group = Year),
+            color = 'blue')+
+  theme_bw()+
+  labs(title = "Acreage")
+
+a |> 
+  filter(District == "PURBA BARDHAMAN") |> 
+  ggplot(aes(x = rain))+
+  geom_point(aes(y = Acr)) + 
+  theme_bw()
+
+
+
+p1 <- a |> 
+  filter(District == "BIRBHUM") |> 
+  filter(Year == 2018) |> 
+  mutate(rain = rain * 10) |> 
+  ggplot(aes(x = Block))+
+  geom_line(aes(y = rain,
+                color = Year,
+                group = Year)) +
+  theme_bw()+
+  labs(title = "Rainfall")
+
+p/p1
+
+
+
+p <- a |> 
+  ggplot(aes(x = Block))+
+  geom_line(aes(y = Acr,
+                color = Year,
+                group = Year))+
+  theme_bw()+
+  labs(title = "Acreage")
+
+
+p1 <- a |> 
+  ggplot(aes(x = Block))+
+  geom_line(aes(y = rain,
+                color = Year,
+                group = Year)) +
+  theme_bw()+
+  labs(title = "Rainfall")
+
+p/p1
+
+
+
+
+
+
+
+
+
+a |> 
+  ggplot()+
+  geom_point(aes(
+    x = Acr,
+    y = rain
+  )) + 
+  theme_bw()
+
+
+acrRain <- acrRain |>
+  rowwise() |> 
+  mutate(MeanAcr = mean(c_across(starts_with("Acr"))),
+         MeanRain = mean(c_across(starts_with("Rain")))) |> 
+  mutate(RainDev_2018 = MeanRain - rain_2018,
+         AcrDev_2018 = MeanAcr - Acr_2018,
+         RainDev_2019 = MeanRain - rain_2019,
+         AcrDev_2019 = MeanAcr - Acr_2019,
+         RainDev_2020 = MeanRain - rain_2020,
+         AcrDev_2020 = MeanAcr - Acr_2020,
+         RainDev_2021 = MeanRain - rain_2021,
+         AcrDev_2021 = MeanAcr - Acr_2021,
+         RainDev_2022 = MeanRain - rain_2022,
+         AcrDev_2022 = MeanAcr - Acr_2022,
+         RainDev_2023 = MeanRain - rain_2023,
+         AcrDev_2023 = MeanAcr - Acr_2023)
+class(acrRain) <- "data.frame"
+acrRain <-  acrRain |> 
+  pivot_longer(
+    cols = c("RainDev_2018", "AcrDev_2018", "RainDev_2019",
+              "AcrDev_2019",  "RainDev_2020", "AcrDev_2020",
+              "RainDev_2021", "AcrDev_2021",  "RainDev_2022",
+              "AcrDev_2022", "RainDev_2023", "AcrDev_2023"),
+    values_to = "Values",
+    names_to = c("Vars", "Years"),
+    names_sep = "_"
+  ) |> 
+  pivot_wider(
+    names_from = "Vars",
+    values_from = "Values"
+  )
+acrRain |>   
+  ggplot() +
+  geom_point(aes(x = RainDev,
+                 y = AcrDev,
+                 colour = Years)) +
+  geom_vline(xintercept = 0) + 
+  geom_hline(yintercept = 0) + 
+  geom_smooth(aes(x = RainDev,
+                  y = AcrDev),
+              method = 'lm',
+              stat = 'smooth',
+              se = FALSE,
+              colour = 'black') + 
+  facet_wrap(~Years, scales = 'free')+
+  theme_bw()
+  
+  
+acrRain |>   
+  mutate(
+    RainDev = if_else(RainDev == 0, 0.0001, RainDev),
+    AcrDev = if_else(AcrDev == 0, 0.0001, AcrDev)
+  ) |> 
+  ggplot() +
+  geom_point(aes(x = RainDev,
+                 y = AcrDev,
+                 colour = Years),
+             alpha = 1/5) +
+  scale_x_continuous(trans='log') +
+  scale_y_continuous(trans='log') + 
+  facet_wrap(~Years)+
+  theme_bw() 
+  
+  
+  
+  
+acrRain |> 
+  ggplot() +
+  geom_point(aes(x = RainDev2018,
+                 y = AcrDev2018)) + 
+  geom_smooth(aes(x = RainDev2018,
+                  y = AcrDev2018), 
+              se = FALSE)+
+  geom_vline(xintercept = 0) + 
+  geom_hline(yintercept = 0) + 
+  ylim(c(-15000, 15000)) + 
+  theme_bw()
