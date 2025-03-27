@@ -84,7 +84,7 @@ MeanSigSep1 <- sig |>
 
 MeanSig <- do.call(rbind, list(MeanSigJul2, MeanSigAug1, MeanSigAug2, MeanSigSep1))
 
-MeanSig |> 
+P <- MeanSig |> 
   mutate(Period = case_when(
     Period == "july_2FN" ~ "July2FN",
     Period == "Aug_1FN" ~ "Aug1FN",
@@ -101,6 +101,7 @@ MeanSig |>
   mutate(Period = factor(Period, levels = c("July2FN", "Aug1FN", "Aug2FN", 
                                             "Sept1FN", "Sept2FN", "Oct1FN",
                                             "Oct2FN", "Nov1FN", "Nov2Fn", "Dec1Fn"))) |> 
+  mutate(Sowing = factor(Sowing, levels = c("July2FN", "August1FN", "August2FN", "Sept1FN" ))) |> 
   ggplot() + 
     geom_xspline(aes(x = Period,
                   y = AverageBS,
@@ -110,13 +111,45 @@ MeanSig |>
     geom_point(aes(x = Period,
                    y = AverageBS,
                    group = Sno,
-                   colour = Sowing)) + 
+                   colour = Sowing)) +
+  geom_curve(data = data.frame(x = 2.5, y = -21, xend = 4.5, yend = -18),
+             aes(x = x, y = y, xend = xend, yend = yend),
+             curvature = -0.15,
+             arrow = arrow(30L, unit(0.1, "inches"),
+                           "last", "closed")) +
+  geom_label(aes(x = 3.5,
+                 y = -20.5, 
+                 label = "Sequential increase\n in sowing dip")
+  ) +
+  geom_curve(data = data.frame(x = 7, y = -16, xend = 7, yend = -15),
+             aes(x = x, y = y, xend = xend, yend = yend),
+             curvature = 0,
+             arrow = arrow(30L, unit(0.1, "inches"),
+                           "first", "closed")) +
+  geom_label(aes(x = 7,
+                 y = -15.5, 
+                 label = "Sudden dip")
+  ) + 
+  geom_curve(data = data.frame(x = 9, y = -16.9, xend = 9, yend = -15.5),
+             aes(x = x, y = y, xend = xend, yend = yend),
+             curvature = 0,
+             arrow = arrow(30L, unit(0.1, "inches"),
+                           "first", "closed")) +
+  geom_label(aes(x = 9,
+                 y = -16, 
+                 label = "Harvesting dip")
+  ) +
   labs(colour = "Sowing Period",
        x = "",
-       y = "Average Backscatter") +
+       y = "Average Backscatter Coefficient (dB)") +
     theme_bw() +
   theme(
-    legend.position = "top"#c(0.87, 0.2)
+    legend.position = c(0.87, 0.2),
+    legend.title = element_text(colour = 'black',
+                                face = "bold"),
+    legend.frame = element_rect(colour = 'black',
+                                linewidth = 'solid')
   )
-
+ggsave(plot = P, "Graphs/SignatureCurves.jpeg", width = 9.8, height =  4.43, units = "in")
+ggsave(plot = P, "Graphs/SignatureCurves.svg")
 
